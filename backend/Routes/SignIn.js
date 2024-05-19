@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const con = require('../Database/db.js')
+const con = require('../Db/db.js')
 const jwt = require('jsonwebtoken')
 const bcrypt= require('bcrypt')
 
@@ -9,28 +9,28 @@ router.post("/signup", async (req, res) => {
   console.log(req.body);
   // Validation
   if (!name || !email || !password || !age || !address) {
-    return res.status(400).send('Please fill in all fields');
+    return res.status(200).send({"signupStatus": false, "message": "please fill in all fields"});
   }
 
   if (name.length > 30) {
-    return res.status(400).send('Name must be within 30 characters');
+    return res.status(200).send({"signupStatus": false, "message": "Name must be within 30 characters"});
   }
 
-  if (password.length < 8) {
-    return res.status(400).send('Password must be greater than 8 characters');
+  if (password < 0) {
+    return res.status(200).send({"signupStatus":false,"message":'Password cannot be negative'});
   }
 
   if(password.length <0){
-    return res.status(400).send("Password cannot be negative");
+    return res.status(200).send({"signupStatus": false, "message": "please fill the password"});
   }
 
   if (!Number.isInteger(parseInt(age))) {
-    return res.status(400).json({ error: 'Age must be an integer' });
+    return res.status(200).json({"signupStatus": false, "message": "Age must be an integer"});
   }
 
   const sql = `INSERT INTO user (name,email,password,age,address) VALUES(?,?,?,?,?)`;
   bcrypt.hash(req.body.password, 10, (err, hash) => {
-    if (err) return res.json({ Status: false, Error: "Hash Error" });
+    if (err) return res.json({ "signupStatus": false, "message": "hash error occured"});
     console.log(hash.toString());
     con.query(sql, [
       req.body.name,
@@ -39,7 +39,7 @@ router.post("/signup", async (req, res) => {
       req.body.age,
       req.body.address,
     ], (err, result) => {
-      if (err) return res.send({ "message": "query error occured" });
+      if (err) return res.send({ "signupStatus": false, "message": "query error occured" });
       if (!err) {
         console.log("result", result);
         const token = jwt.sign({

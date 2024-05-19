@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const con = require('../Database/db.js')
+const con = require('../Db/db.js')
 const jwt = require('jsonwebtoken')
 const bcrypt= require('bcrypt')
 
@@ -20,7 +20,7 @@ router.post('/login', (req, res) => {
         }
         if (bcryptResult) {
           console.log("Login successful");
-          const token = jwt.sign({ email: email }, "jwt_secret_key", { expiresIn: "1d" });
+          const token = jwt.sign({ email: email}, "jwt_secret_key", { expiresIn: "1d" });
           return res.status(200).json({ "LoginStatus": true, "message": "successfully logged in",token });
         } else {
           console.log("Wrong email or password");

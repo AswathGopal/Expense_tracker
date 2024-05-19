@@ -1,9 +1,8 @@
 import React,{useContext,useState} from "react";
 import axios from 'axios'
-
+import Cookies from 'js-cookie';
 
 const BASE_URL="http://localhost:8000/auth"
-
 const GlobalContext = React.createContext()
 
 export const GlobalProvider =({children})=>{
@@ -13,7 +12,7 @@ export const GlobalProvider =({children})=>{
 
 // incomes
 const addIncome =async(income)=>{
-  const response = await axios.post('${BASE_URL}/add-income',income)
+  const response = await axios.post(`${BASE_URL}/add-income`,{"income":income,"token":Cookies.get('token')})
   .catch((err)=>{
     setError(err.response.data.message)
   })
@@ -21,25 +20,32 @@ const addIncome =async(income)=>{
 }
 
 const getIncomes = async()=>{
-    const response = await axios.get('${BASE_URL}/get-income')
+    const response = await axios.get(`${BASE_URL}/get-income`)
+    console.log(response.data);
     setIncomes(response.data)
 }
 
 const deleteIncome = async(id) =>{
-    const response = await axios.delete('${BASE_URL}/delete-income/${id')
+    const response = await axios.delete(`${BASE_URL}/delete-income/${id}`,
+    {
+        headers: {
+            'Authorization': Cookies.get('token')
+        }
+    }
+    )
     getIncomes()
 }
 
 const totalIncome = ()=>{
     let totalIncome =0;
     incomes.forEach((income)=>{
-        totalIncome=totalIncome+ income.amont
+        totalIncome=totalIncome+ parseInt(income.amount);
     })
 
     return totalIncome;
 }
-const addExpense = async (income) => {
-    const response = await axios.post(`${BASE_URL}add-expense`, income)
+const addExpense = async (expense) => {
+    const response = await axios.post(`${BASE_URL}/add-expense`, {"expense":expense,"token":Cookies.get('token')})
         .catch((err) =>{
             setError(err.response.data.message)
         })
@@ -47,20 +53,26 @@ const addExpense = async (income) => {
 }
 
 const getExpenses = async () => {
-    const response = await axios.get(`${BASE_URL}get-expenses`)
+    const response = await axios.get(`${BASE_URL}/get-expense`)
     setExpenses(response.data)
     console.log(response.data)
 }
 
 const deleteExpense = async (id) => {
-    const res  = await axios.delete(`${BASE_URL}delete-expense/${id}`)
+    const res  = await axios.delete(`${BASE_URL}/delete-expense/${id}`,
+    {
+        headers: {
+            'Authorization': Cookies.get('token')
+        }
+    }
+    )
     getExpenses()
 }
 
 const totalExpenses = () => {
     let totalExpense = 0;
     expenses.forEach((income) =>{
-        totalExpense = totalExpense + income.amount
+        totalExpense = totalExpense + parseInt(income.amount);
     })
 
     return totalExpense;
@@ -70,7 +82,14 @@ const totalBalance = () => {
     return totalIncome() - totalExpenses()
 }
 
- 
+const transactionHistory = () => {
+    const history = [...incomes, ...expenses]
+    history.sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt)
+    })
+
+    return history.slice(0, 3)
+}
 
 return(
     <GlobalContext.Provider value={{
@@ -86,7 +105,8 @@ return(
         totalExpenses,
         totalBalance,
         error,
-        setError
+        setError,
+        transactionHistory
     }}>{children}</GlobalContext.Provider>
 )
 }

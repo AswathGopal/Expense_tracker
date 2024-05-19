@@ -18,28 +18,20 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (
-      !values.name ||
-      !values.email ||
-      !values.password ||
-      !values.age ||
-      !values.address
-    ) {
-      setError("Please fill in all fields");
-    }
-
 
     try {
       const result = await axios.post(
         "http://localhost:8000/auth/signup",
         values
       );
+      console.log(result.data.signupStatus);
       if (result.data.signupStatus) {
         console.log(result.data.signupStatus);
         Cookies.set("token", result.data.token, { expires: 7 });
-        localStorage.setItem("valid", true);
-        navigate("/");
+        alert("sign in success");
+        navigate("/dashboard");
       } else {
+        console.log(result.data.message);
         alert(result.data.message);
       }
     } catch (err) {

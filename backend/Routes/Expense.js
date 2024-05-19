@@ -1,12 +1,14 @@
-const mysql = require('mysql');
-const dbConfig = require('./dbConfig');
+const express = require('express');
+const con = require('../Db/db.js');
+const jwt = require('jsonwebtoken');
+const router = express.Router();
 
-// Create a connection pool using MySQL
-const pool = mysql.createPool(dbConfig);
-
-exports.addExpense = async (req, res) => {
-    const { title, amount, category, description, date } = req.body;
-
+router.post('/add-expense',(req, res) => {
+    const { title, amount, category, description, date } = req.body.expense;
+    const token = req.body.token;
+    const email=jwt.decode(token).email;
+    console.log(req.body);
+    const formattedDate = new Date(date).toISOString().slice(0, 19).replace('T', ' ');
     try {
         // Validations
         if (!title || !category || !description || !date) {
@@ -17,11 +19,11 @@ exports.addExpense = async (req, res) => {
         }
 
         // Inserting expense
-        const insertQuery = `INSERT INTO expenses (title, amount, category, description, date) VALUES (?, ?, ?, ?, ?)`;
-        pool.query(insertQuery, [title, amount, category, description, date], (error, results) => {
+        const insertQuery = `INSERT INTO expense (title, amount, category, description, date, email) VALUES (?, ?, ?, ?, ?, ?)`;
+        con.query(insertQuery, [title, amount, category, description, formattedDate, email], (error, results) => {
             if (error) {
                 console.error(error);
-                return res.status(500).json({ message: 'Server Error' });
+                return res.status(500).json({ message: 'Query error occured' });
             }
             res.status(200).json({ message: 'Expense Added' });
         });
@@ -29,15 +31,15 @@ exports.addExpense = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
     }
-};
+});
 
-exports.getExpense = async (req, res) => {
+router.get('/get-expense', (req, res) => {
     try {
-        const selectQuery = `SELECT * FROM expenses ORDER BY date DESC`;
-        pool.query(selectQuery, (error, results) => {
+        const selectQuery = `SELECT * FROM expense ORDER BY date DESC`;
+        con.query(selectQuery, (error, results) => {
             if (error) {
                 console.error(error);
-                return res.status(500).json({ message: 'Server Error' });
+                return res.status(500).json({ message: 'Query Error occured' });
             }
             res.status(200).json(results);
         });
@@ -45,16 +47,19 @@ exports.getExpense = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
     }
-};
+});
 
-exports.deleteExpense = async (req, res) => {
+router.delete('/delete-expense/:id',(req, res) => {
     const { id } = req.params;
     try {
-        const deleteQuery = `DELETE FROM expenses WHERE id = ?`;
-        pool.query(deleteQuery, [id], (error, results) => {
+    const token = req.headers.authorization;
+    console.log(token);
+    const email=jwt.decode(token).email;
+        const deleteQuery = `DELETE FROM expense WHERE id = ? AND email= ?`;
+        con.query(deleteQuery, [id,email], (error, results) => {
             if (error) {
                 console.error(error);
-                return res.status(500).json({ message: 'Server Error' });
+                return res.status(500).json({ message: 'Query Error' });
             }
             res.status(200).json({ message: 'Expense Deleted' });
         });
@@ -62,4 +67,6 @@ exports.deleteExpense = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
     }
-};
+});
+
+module.exports=router;

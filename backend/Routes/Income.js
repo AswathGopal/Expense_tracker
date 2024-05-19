@@ -1,11 +1,16 @@
-const mysql = require('mysql');
-const dbConfig = require('./dbConfig');
+// const jwtDecode = require('jwt-decode');
+const express = require("express");
+const con = require('../Db/db.js');
+const jwt = require('jsonwebtoken');
+const router = express.Router();
 
-const pool = mysql.createPool(dbConfig);
 
-exports.addIncome = async (req, res) => {
-    const { title, amount, category, description, date } = req.body;
-
+router.post('/add-income',(req, res) => {
+    console.log(req.body);
+    const { title, amount, category, description, date } = req.body.income;
+    const token = req.body.token;
+    const email=jwt.decode(token).email;
+    const formattedDate = new Date(date).toISOString().slice(0, 19).replace('T', ' ');
     try {
         // Validations
         if (!title || !category || !description || !date) {
@@ -16,8 +21,8 @@ exports.addIncome = async (req, res) => {
         }
 
         // Inserting income
-        const insertQuery = `INSERT INTO incomes (title, amount, category, description, date) VALUES (?, ?, ?, ?, ?)`;
-        pool.query(insertQuery, [title, amount, category, description, date], (error, results) => {
+        const insertQuery = `INSERT INTO income (title, amount, category, description, date,email) VALUES (?, ?, ?, ?, ?, ?)`;
+        con.query(insertQuery, [title, parseInt(amount), category, description, formattedDate,email], (error, results) => {
             if (error) {
                 console.error(error);
                 return res.status(500).json({ message: 'Server Error' });
@@ -28,12 +33,12 @@ exports.addIncome = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
     }
-};
+});
 
-exports.getIncomes = async (req, res) => {
+router.get('/get-income',(req, res) => {
     try {
-        const selectQuery = `SELECT * FROM incomes ORDER BY date DESC`;
-        pool.query(selectQuery, (error, results) => {
+        const selectQuery = `SELECT * FROM income ORDER BY date DESC`;
+        con.query(selectQuery, (error, results) => {
             if (error) {
                 console.error(error);
                 return res.status(500).json({ message: 'Server Error' });
@@ -44,13 +49,16 @@ exports.getIncomes = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
     }
-};
+});
 
-exports.deleteIncome = async (req, res) => {
+router.delete('/delete-income/:id' ,(req, res) => {
     const { id } = req.params;
     try {
-        const deleteQuery = `DELETE FROM incomes WHERE id = ?`;
-        pool.query(deleteQuery, [id], (error, results) => {
+    const token = req.headers.authorization;
+    console.log(token);
+    const email=jwt.decode(token).email;
+        const deleteQuery = `DELETE FROM income WHERE id = ? AND email= ? `;
+        con.query(deleteQuery, [id,email], (error, results) => {
             if (error) {
                 console.error(error);
                 return res.status(500).json({ message: 'Server Error' });
@@ -61,4 +69,6 @@ exports.deleteIncome = async (req, res) => {
         console.error(error);
         res.status(500).json({ message: 'Server Error' });
     }
-};
+});
+
+module.exports=router;

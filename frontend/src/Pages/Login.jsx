@@ -18,7 +18,8 @@ const Login = () => {
   //     .post("http://localhost:8000/verify", { token: Cookies.get("token") })
   //     .then((result) => {
   //       console.log(result.data.Status)
-  //       if (result.data.Status = "ok") navigate("/home");
+  //       if (result.data.Status = "ok") navigate("/dashboard");
+  //       if (result.data.Status = "not ok") navigate("/");
   //     })
   //     .then((err) => console.log(err));
   // }, []);
@@ -35,7 +36,7 @@ const Login = () => {
       if (result.data.LoginStatus) {
         Cookies.set("token", result.data.token, { expires: 7 });
         alert("Login Success")
-        navigate('/home');
+        navigate('/dashboard');
       } else {
         setError(result.data.message);
       }

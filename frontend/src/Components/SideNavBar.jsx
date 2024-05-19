@@ -1,7 +1,21 @@
-import React from 'react'
-import { Link,Outlet } from 'react-router-dom'
+import React,{useEffect} from 'react'
+import { Link,Outlet,useNavigate } from 'react-router-dom'
+import Cookies from 'js-cookie'
 import { dashboard, expenses } from '../Utils/Icons'
+import axios from 'axios'
 const SideNavBar = () => {
+  // const navigate = useNavigate();
+  // useEffect(() => {
+  //   axios
+  //     .post("http://localhost:8000/verify", { token: Cookies.get("token") })
+  //     .then((result) => {
+  //       console.log(result.data.Status)
+  //       if (result.data.Status = "ok") navigate("/dashboard");
+  //       if (result.data.Status = "not ok") navigate("/");
+  //     })
+  //     .then((err) => console.log(err));
+  // }, []);
+
   return (
     <div className="container-fluid">
     <div className="flex">
@@ -19,7 +33,7 @@ const SideNavBar = () => {
           {/* Navigation Links */}
           <ul className="flex flex-col mb-auto sm:mb-0 items-start mt-3">
             <li className="w-full">
-              <Link to="/dashboard" className="text-white px-4 py-2 flex items-center hover:bg-blue-600">
+              <Link to="/dashboard/analytics" className="text-white px-4 py-2 flex items-center hover:bg-blue-600">
                 <i className="text-lg bi-speedometer2 mr-2"></i>
                 <span className="hidden sm:inline">Dashboard</span>
               </Link>
@@ -31,7 +45,7 @@ const SideNavBar = () => {
               </Link>
             </li>
             <li className="w-full">
-              <Link to="/expense" className="px-4 py-2 flex items-center text-white hover:bg-blue-600">
+              <Link to="/dashboard/expense" className="px-4 py-2 flex items-center text-white hover:bg-blue-600">
                 <i className="text-lg bi-columns mr-2"></i>
                 <span className="hidden sm:inline">Expense</span>
               </Link>
